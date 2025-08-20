@@ -15,7 +15,7 @@ const {
   resetPassword,
 } = require("../controllers/resetPassword")
 
-const { auth } = require("../middlewares/Auth")
+const { auth } = require("../middlewares/Auth");
 
 // Routes for Login, Signup, and Authentication
 
