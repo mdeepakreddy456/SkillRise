@@ -12,50 +12,46 @@ require("dotenv").config();
 exports.sendOTP = async (req, res) => {
     try {
       const { email } = req.body
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is required",
+        })
+      }
   
       // Check if user is already present
-      // Find user with provided email
       const checkUserPresent = await User.findOne({ email })
-      // to be used in case of signup
   
-      // If user found with provided email
       if (checkUserPresent) {
-        // Return 401 Unauthorized status code with error message
-        return res.status(401).json({
+        return res.status(400).json({
           success: false,
           message: `User is Already Registered`,
         })
       }
   
-      var otp = otpGenerator.generate(6, {
-        upperCaseAlphabets: false,
-        lowerCaseAlphabets: false,
-        specialChars: false,
-      })
+      let otp = Math.floor(100000 + Math.random() * 900000).toString()
       let result = await OTP.findOne({ otp: otp })
-      console.log("Result is Generate OTP Func")
-      console.log("OTP", otp)
-      console.log("Result", result)
       while (result) {
-        otp = otpGenerator.generate(6, {
-          upperCaseAlphabets: false,
-          lowerCaseAlphabets: false,
-          specialChars: false,
-        })
+        otp = Math.floor(100000 + Math.random() * 900000).toString()
         result = await OTP.findOne({ otp: otp })
       }
       const otpPayload = { email, otp }
       const otpBody = await OTP.create(otpPayload)
       console.log("OTP Body", otpBody)
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: `OTP Sent Successfully`,
         otp,
       })
     } catch (error) {
-      console.log(error.message)
-      return res.status(500).json({ success: false, error: error.message })
+      console.error("SEND OTP ERROR:", error)
+      return res.status(500).json({ 
+        success: false, 
+        message: error.message || "Failed to send OTP",
+        error: error.message 
+      })
     }
+}
 }
 
 //Signup

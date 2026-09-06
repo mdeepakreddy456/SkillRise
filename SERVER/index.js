@@ -28,10 +28,11 @@ const cors = require("cors");
 
 const PORT = process.env.PORT || 4000;
 
-database.connect();
-cloudinaryConnect();
-
 // Middlewares
+app.use(async (req, res, next) => {
+  await database.connect();
+  next();
+});
 app.use(express.json());
 app.use(cookieParser());
 
