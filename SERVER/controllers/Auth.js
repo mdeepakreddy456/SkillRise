@@ -52,7 +52,6 @@ exports.sendOTP = async (req, res) => {
       })
     }
 }
-}
 
 //Signup
 exports.signup = async (req , res) => {
