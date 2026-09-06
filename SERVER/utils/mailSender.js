@@ -1,29 +1,33 @@
 const nodemailer = require("nodemailer");
 
 const mailSender = async (email , title , body) => {
-    try{
-
+    try {
+        const mailPass = (process.env.MAIL_PASS || "").replace(/\s+/g, "");
         let transporter = nodemailer.createTransport({
-          host: process.env.MAIL_HOST,
+          host: process.env.MAIL_HOST || "smtp.gmail.com",
+          port: 587,
+          secure: false,
           auth: {
-            user : process.env.MAIL_USER,
-            pass : process.env.MAIL_PASS,
+            user: process.env.MAIL_USER,
+            pass: mailPass,
           },
-          secure : false,
-        })
+          tls: {
+            rejectUnauthorized: false,
+          },
+        });
 
         let info = await transporter.sendMail({
-            from: "SkillRise - Edutech Platform by Deepak Reddy `<${process.env.MAIL_USER}>`",
-            to: `${email}`, //list of receivers
-            subject: `${title}`, //Subject Line
-            html: `${body}`, //html body
-        }) 
-        console.log(info.response);
+            from: `SkillRise - Edutech Platform <${process.env.MAIL_USER}>`,
+            to: `${email}`,
+            subject: `${title}`,
+            html: `${body}`,
+        });
+        console.log("Mail response:", info.response);
         return info;
 
-    }catch(error){
-        console.log(error.message);
-        return error.message
+    } catch(error){
+        console.error("Mail sender error:", error.message);
+        return error.message;
     }
 }
 
