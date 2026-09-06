@@ -23,7 +23,7 @@ exports.createCategory = async (req, res) => {
 		});
 	} catch (error) {
 		return res.status(500).json({
-			success: true,
+			success: false,
 			message: error.message,
 		});
 	}
@@ -32,7 +32,19 @@ exports.createCategory = async (req, res) => {
 exports.showAllCategories = async (req, res) => {
 	try {
         console.log("INSIDE SHOW ALL CATEGORIES");
-		const allCategorys = await Category.find({});
+		let allCategorys = await Category.find({});
+		if (allCategorys.length === 0) {
+			const defaultCategories = [
+				{ name: "Web Development", description: "Learn frontend and backend web development skills." },
+				{ name: "Android Development", description: "Build modern mobile applications for Android & iOS." },
+				{ name: "Data Science", description: "Master data analysis, visualization, and statistics." },
+				{ name: "Machine Learning", description: "Build AI models and deep learning algorithms." },
+				{ name: "Cloud Computing", description: "Learn AWS, Azure, GCP, and cloud architecture." },
+				{ name: "DevOps", description: "Master CI/CD pipelines, Docker, Kubernetes, and automation." },
+			];
+			allCategorys = await Category.insertMany(defaultCategories);
+			console.log("Default categories seeded successfully");
+		}
 		res.status(200).json({
 			success: true,
 			data: allCategorys,
@@ -80,15 +92,18 @@ exports.categoryPageDetails = async (req, res) => {
       const categoriesExceptSelected = await Category.find({
         _id: { $ne: categoryId },
       })
-      let differentCategory = await Category.findOne(
-        categoriesExceptSelected[getRandomInt(categoriesExceptSelected.length)]
-          ._id
-      )
-        .populate({
-          path: "courses",
-          match: { status: "Published" },
-        })
-        .exec()
+      let differentCategory = null
+      if (categoriesExceptSelected.length > 0) {
+        differentCategory = await Category.findOne(
+          categoriesExceptSelected[getRandomInt(categoriesExceptSelected.length)]
+            ._id
+        )
+          .populate({
+            path: "courses",
+            match: { status: "Published" },
+          })
+          .exec()
+      }
         //console.log("Different COURSE", differentCategory)
       // Get top-selling courses across all categories
       const allCategories = await Category.find()

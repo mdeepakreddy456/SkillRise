@@ -19,7 +19,7 @@ export default function Instructor() {
       const instructorApiData = await getInstructorData(token)
       const result = await fetchInstructorCourses(token)
       console.log(instructorApiData)
-      if (instructorApiData.length) setInstructorData(instructorApiData)
+      if (instructorApiData) setInstructorData(instructorApiData)
       if (result) {
         setCourses(result)
       }
@@ -27,15 +27,17 @@ export default function Instructor() {
     })()
   }, [token])
 
-  const totalAmount = instructorData?.reduce(
-    (acc, curr) => acc + curr.totalAmountGenerated,
-    0
-  )
+  const totalAmount =
+    instructorData?.reduce(
+      (acc, curr) => acc + (curr.totalAmountGenerated || 0),
+      0
+    ) || 0
 
-  const totalStudents = instructorData?.reduce(
-    (acc, curr) => acc + curr.totalStudentsEnrolled,
-    0
-  )
+  const totalStudents =
+    instructorData?.reduce(
+      (acc, curr) => acc + (curr.totalStudentsEnrolled || 0),
+      0
+    ) || 0
 
   return (
     <div>

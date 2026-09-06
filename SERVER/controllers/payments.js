@@ -76,8 +76,9 @@ exports.verifySignature = async (req, res) => {
   const body = `${razorpay_order_id}|${razorpay_payment_id}`;
   console.log('Body for HMAC:', body);
 
+  const razorpaySecret = process.env.RAZORPAY_SECRET || process.env.RAZORPAY_KEY_SECRET;
   const expectedSignature = crypto
-    .createHmac('sha256', process.env.RAZORPAY_SECRET)
+    .createHmac('sha256', razorpaySecret)
     .update(body)
     .digest('hex');
 
@@ -86,8 +87,7 @@ exports.verifySignature = async (req, res) => {
 
   if (expectedSignature === razorpay_signature) {
     try {
-      console.log('Signature verified, enrolling students...');
-      await enrollStudents(courses, userId, res);
+      await enrollStudents(courses, userId);
       return res.status(200).json({ success: true, message: 'Payment Verified' });
     } catch (error) {
       console.error('Error in verifySignature:', error);
@@ -130,61 +130,55 @@ exports.sendPaymentSuccessEmail = async (req, res) => {
   }
 };
 
-const enrollStudents = async (courses, userId, res) => {
+const enrollStudents = async (courses, userId) => {
   if (!courses || !userId) {
     console.log('Missing courses or userId');
-    return res.status(400).json({ success: false, message: 'Please Provide Course ID and User ID' });
+    throw new Error('Please Provide Course ID and User ID');
   }
 
-  try {
-    for (const courseId of courses) {
-      console.log('Enrolling user in course:', courseId);
-      const enrolledCourse = await Course.findOneAndUpdate(
-        { _id: courseId },
-        { $push: { studentsEnrolled: userId } },
-        { new: true }
-      );
+  for (const courseId of courses) {
+    console.log('Enrolling user in course:', courseId);
+    const enrolledCourse = await Course.findOneAndUpdate(
+      { _id: courseId },
+      { $push: { studentsEnrolled: userId } },
+      { new: true }
+    );
 
-      if (!enrolledCourse) {
-        console.log('Course not found:', courseId);
-        return res.status(404).json({ success: false, error: 'Course not found' });
-      }
-
-      console.log('Creating course progress for user:', userId);
-      const courseProgress = await CourseProgress.create({
-        courseID: courseId,
-        userId: userId,
-        completedVideos: [],
-      });
-
-      console.log('Updating user with enrolled course and progress:', userId);
-      const enrolledStudent = await User.findByIdAndUpdate(
-        userId,
-        {
-          $push: {
-            courses: courseId,
-            courseProgress: courseProgress._id,
-          },
-        },
-        { new: true }
-      );
-
-      console.log('Sending enrollment email to:', enrolledStudent.email);
-      await mailSender(
-        enrolledStudent.email,
-        `Successfully Enrolled into ${enrolledCourse.courseName}`,
-        courseEnrollmentEmail(
-          enrolledCourse.courseName,
-          `${enrolledStudent.firstName} ${enrolledStudent.lastName}`
-        )
-      );
-
-      console.log('Enrolled student:', enrolledStudent);
+    if (!enrolledCourse) {
+      console.log('Course not found:', courseId);
+      throw new Error(`Course not found: ${courseId}`);
     }
-    console.log('Students enrolled successfully');
-    res.json({ success: true, message: 'Students enrolled successfully' });
-  } catch (error) {
-    console.error('Error in enrollStudents:', error);
-    return res.status(500).json({ success: false, error: error.message });
+
+    console.log('Creating course progress for user:', userId);
+    const courseProgress = await CourseProgress.create({
+      courseID: courseId,
+      userId: userId,
+      completedVideos: [],
+    });
+
+    console.log('Updating user with enrolled course and progress:', userId);
+    const enrolledStudent = await User.findByIdAndUpdate(
+      userId,
+      {
+        $push: {
+          courses: courseId,
+          courseProgress: courseProgress._id,
+        },
+      },
+      { new: true }
+    );
+
+    console.log('Sending enrollment email to:', enrolledStudent.email);
+    await mailSender(
+      enrolledStudent.email,
+      `Successfully Enrolled into ${enrolledCourse.courseName}`,
+      courseEnrollmentEmail(
+        enrolledCourse.courseName,
+        `${enrolledStudent.firstName} ${enrolledStudent.lastName}`
+      )
+    );
+
+    console.log('Enrolled student:', enrolledStudent);
   }
+  console.log('Students enrolled successfully');
 };

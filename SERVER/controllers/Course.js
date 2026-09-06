@@ -25,11 +25,11 @@ exports.createCourse = async (req, res) => {
       instructions: _instructions,
     } = req.body
     // Get thumbnail image from request files
-    const thumbnail = req.files.thumbnailImage
+    const thumbnail = req.files ? req.files.thumbnailImage : null
 
     // Convert the tag and instructions from stringified Array to Array
-    const tag = JSON.parse(_tag)
-    const instructions = JSON.parse(_instructions)
+    const tag = typeof _tag === "string" ? JSON.parse(_tag) : (_tag || [])
+    const instructions = typeof _instructions === "string" ? JSON.parse(_instructions) : (_instructions || [])
 
     console.log("tag", tag)
     console.log("instructions", instructions)
@@ -328,7 +328,7 @@ exports.getCourseDetails = async (req, res) => {
     let totalDurationInSeconds = 0
     courseDetails.courseContent.forEach((content) => {
       content.subSection.forEach((subSection) => {
-        const timeDurationInSeconds = parseInt(subSection.timeDuration)
+        const timeDurationInSeconds = parseInt(subSection.timeDuration) || 0
         totalDurationInSeconds += timeDurationInSeconds
       })
     })
@@ -397,7 +397,7 @@ exports.getFullCourseDetails = async (req, res) => {
     let totalDurationInSeconds = 0
     courseDetails.courseContent.forEach((content) => {
       content.subSection.forEach((subSection) => {
-        const timeDurationInSeconds = parseInt(subSection.timeDuration)
+        const timeDurationInSeconds = parseInt(subSection.timeDuration) || 0
         totalDurationInSeconds += timeDurationInSeconds
       })
     })
@@ -459,7 +459,7 @@ exports.deleteCourse = async (req, res) => {
     }
 
     // Unenroll students from the course
-    const studentsEnrolled = course.studentsEnroled
+    const studentsEnrolled = course.studentsEnrolled || course.studentsEnroled || []
     for (const studentId of studentsEnrolled) {
       await User.findByIdAndUpdate(studentId, {
         $pull: { courses: courseId },

@@ -3,13 +3,10 @@ require("dotenv").config();
 //Cloudinary is being required
 
 exports.cloudinaryConnect = () => {
-    try{
+    try {
         if (!process.env.CLOUD_NAME || !process.env.API_KEY || !process.env.API_SECRET) {
-            console.error("Cloudinary credentials are missing. Please check your .env file");
-            console.log("CLOUD_NAME:", process.env.CLOUD_NAME);
-            console.log("API_KEY:", process.env.API_KEY ? "exists" : "missing");
-            console.log("API_SECRET:", process.env.API_SECRET ? "exists" : "missing");
-            throw new Error("Cloudinary credentials are missing");
+            console.warn("Cloudinary credentials missing or incomplete. Media upload features will require valid Cloudinary environment variables.");
+            return;
         }
         
         cloudinary.config({
@@ -21,6 +18,5 @@ exports.cloudinaryConnect = () => {
         console.log("Cloudinary connection established successfully");
     } catch(error) {
         console.error("Cloudinary connection error:", error);
-        throw error;
     }
 }

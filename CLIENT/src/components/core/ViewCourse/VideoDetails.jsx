@@ -59,39 +59,54 @@ const VideoDetails = () => {
   };
 
   const isLastVideo = () => {
+    if (!courseSectionData?.length) return false;
     const currentSectionIndex = courseSectionData.findIndex((data) => data._id === sectionId);
-    const noOfSubsections = courseSectionData[currentSectionIndex].subSection.length;
-    const currentSubSectionIndex = courseSectionData[currentSectionIndex].subSection.findIndex((data) => data._id === subSectionId);
-    return currentSectionIndex === courseSectionData.length - 1 && currentSubSectionIndex === noOfSubsections - 1;
+    if (currentSectionIndex === -1) return false;
+    const subSections = courseSectionData[currentSectionIndex]?.subSection || [];
+    const currentSubSectionIndex = subSections.findIndex((data) => data._id === subSectionId);
+    return currentSectionIndex === courseSectionData.length - 1 && currentSubSectionIndex === subSections.length - 1;
   };
 
   const goToNextVideo = () => {
+    if (!courseSectionData?.length) return;
     const currentSectionIndex = courseSectionData.findIndex((data) => data._id === sectionId);
-    const noOfSubsections = courseSectionData[currentSectionIndex].subSection.length;
-    const currentSubSectionIndex = courseSectionData[currentSectionIndex].subSection.findIndex((data) => data._id === subSectionId);
+    if (currentSectionIndex === -1) return;
+    const subSections = courseSectionData[currentSectionIndex]?.subSection || [];
+    const currentSubSectionIndex = subSections.findIndex((data) => data._id === subSectionId);
 
-    if (currentSubSectionIndex !== noOfSubsections - 1) {
-      const nextSubSectionId = courseSectionData[currentSectionIndex].subSection[currentSubSectionIndex + 1]._id;
-      navigate(`/view-course/${courseId}/section/${sectionId}/sub-section/${nextSubSectionId}`);
-    } else {
+    if (currentSubSectionIndex !== subSections.length - 1) {
+      const nextSubSectionId = subSections[currentSubSectionIndex + 1]?._id;
+      if (nextSubSectionId) {
+        navigate(`/view-course/${courseId}/section/${sectionId}/sub-section/${nextSubSectionId}`);
+      }
+    } else if (courseSectionData[currentSectionIndex + 1]) {
       const nextSectionId = courseSectionData[currentSectionIndex + 1]._id;
-      const nextSubSectionId = courseSectionData[currentSectionIndex + 1].subSection[0]._id;
-      navigate(`/view-course/${courseId}/section/${nextSectionId}/sub-section/${nextSubSectionId}`);
+      const nextSubSectionId = courseSectionData[currentSectionIndex + 1].subSection?.[0]?._id;
+      if (nextSubSectionId) {
+        navigate(`/view-course/${courseId}/section/${nextSectionId}/sub-section/${nextSubSectionId}`);
+      }
     }
   };
 
   const goToPrevVideo = () => {
+    if (!courseSectionData?.length) return;
     const currentSectionIndex = courseSectionData.findIndex((data) => data._id === sectionId);
-    const currentSubSectionIndex = courseSectionData[currentSectionIndex].subSection.findIndex((data) => data._id === subSectionId);
+    if (currentSectionIndex === -1) return;
+    const subSections = courseSectionData[currentSectionIndex]?.subSection || [];
+    const currentSubSectionIndex = subSections.findIndex((data) => data._id === subSectionId);
 
     if (currentSubSectionIndex !== 0) {
-      const prevSubSectionId = courseSectionData[currentSectionIndex].subSection[currentSubSectionIndex - 1]._id;
-      navigate(`/view-course/${courseId}/section/${sectionId}/sub-section/${prevSubSectionId}`);
-    } else {
+      const prevSubSectionId = subSections[currentSubSectionIndex - 1]?._id;
+      if (prevSubSectionId) {
+        navigate(`/view-course/${courseId}/section/${sectionId}/sub-section/${prevSubSectionId}`);
+      }
+    } else if (courseSectionData[currentSectionIndex - 1]) {
       const prevSectionId = courseSectionData[currentSectionIndex - 1]._id;
-      const prevSubSectionLength = courseSectionData[currentSectionIndex - 1].subSection.length;
-      const prevSubSectionId = courseSectionData[currentSectionIndex - 1].subSection[prevSubSectionLength - 1]._id;
-      navigate(`/view-course/${courseId}/section/${prevSectionId}/sub-section/${prevSubSectionId}`);
+      const prevSubSectionList = courseSectionData[currentSectionIndex - 1].subSection || [];
+      const prevSubSectionId = prevSubSectionList[prevSubSectionList.length - 1]?._id;
+      if (prevSubSectionId) {
+        navigate(`/view-course/${courseId}/section/${prevSectionId}/sub-section/${prevSubSectionId}`);
+      }
     }
   };
 

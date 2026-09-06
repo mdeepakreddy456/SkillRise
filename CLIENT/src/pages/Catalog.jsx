@@ -3,10 +3,8 @@ import { useSelector } from "react-redux"
 import { useParams } from "react-router-dom"
 
 import Footer from "../components/Common/Footer"
-// eslint-disable-next-line react/jsx-pascal-case
-import Course_Card from "../components/core/Catalog/Course_Card"
-// eslint-disable-next-line react/jsx-pascal-case
-import Course_Slider from "../components/core/Catalog/Course_Slider"
+import CourseCard from "../components/core/Catalog/Course_Card"
+import CourseSlider from "../components/core/Catalog/Course_Slider"
 import { apiConnector } from "../services/apiConnector"
 import { categories } from "../services/apis"
 import { getCatalogPageData } from "../services/operations/pageAndComponntDatas"
@@ -23,10 +21,12 @@ function Catalog() {
     ;(async () => {
       try {
         const res = await apiConnector("GET", categories.CATEGORIES_API)
-        const category_id = res?.data?.data?.filter(
+        const category_id = res?.data?.data?.find(
           (ct) => ct.name.split(" ").join("-").toLowerCase() === catalogName
-        )[0]._id
-        setCategoryId(category_id)
+        )?._id
+        if (category_id) {
+          setCategoryId(category_id)
+        }
       } catch (error) {
         console.log("Could not fetch Categories.", error)
       }
@@ -102,7 +102,7 @@ function Catalog() {
           </p>
         </div>
         <div>
-          <Course_Slider
+          <CourseSlider
             Courses={catalogPageData?.data?.selectedCategory?.courses}
           />
         </div>
@@ -113,7 +113,7 @@ function Catalog() {
           Top courses in {catalogPageData?.data?.differentCategory?.name}
         </div>
         <div className="py-8">
-          <Course_Slider
+          <CourseSlider
             Courses={catalogPageData?.data?.differentCategory?.courses}
           />
         </div>
@@ -127,7 +127,7 @@ function Catalog() {
             {catalogPageData?.data?.mostSellingCourses
               ?.slice(0, 4)
               .map((course, i) => (
-                <Course_Card course={course} key={i} Height={"h-[400px]"} />
+                <CourseCard course={course} key={i} Height={"h-[400px]"} />
               ))}
           </div>
         </div>

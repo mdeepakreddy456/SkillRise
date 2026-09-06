@@ -10,7 +10,7 @@ const {
 const { auth, isInstructor, isStudent, isAdmin } = require("../middlewares/Auth")
 
 router.post("/capturePayment", auth, isStudent, capturePayment)
-router.post("/verifyPayment", verifySignature)
+router.post("/verifyPayment", auth, isStudent, verifySignature)
 router.post(
     "/sendPaymentSuccessEmail",
     auth,

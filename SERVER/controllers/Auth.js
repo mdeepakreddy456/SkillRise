@@ -32,14 +32,17 @@ exports.sendOTP = async (req, res) => {
         lowerCaseAlphabets: false,
         specialChars: false,
       })
-      const result = await OTP.findOne({ otp: otp })
+      let result = await OTP.findOne({ otp: otp })
       console.log("Result is Generate OTP Func")
       console.log("OTP", otp)
       console.log("Result", result)
       while (result) {
         otp = otpGenerator.generate(6, {
           upperCaseAlphabets: false,
+          lowerCaseAlphabets: false,
+          specialChars: false,
         })
+        result = await OTP.findOne({ otp: otp })
       }
       const otpPayload = { email, otp }
       const otpBody = await OTP.create(otpPayload)
@@ -136,9 +139,7 @@ exports.signup = async (req , res) => {
    //In the additional details we give the reference to the profileModel therefore we will need to create a profile before creating the entry into the database reference means we are giving the id of the object in the database that that is uniqurely assigned by the mongodb internally
 
 
-   //create the user
-   let approved= ""
-   approved === "Instructor" ? (approved = false) : (approved = true);
+   let approved = accountType === "Instructor" ? false : true;
 
    const profileDetails = await Profile.create({
        gender : null,

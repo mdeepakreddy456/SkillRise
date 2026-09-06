@@ -33,8 +33,8 @@ export default function Upload({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: !video
-      ? { "image/*": [".jpeg", ".jpg", ".png"] }
-      : { "video/*": [".mp4"] },
+      ? { "image/*": [] }
+      : { "video/*": [] },
     onDrop,
   })
 
@@ -51,22 +51,14 @@ export default function Upload({
   }, [register, name])
 
   useEffect(() => {
-    setValue(name, selectedFile)
-  }, [selectedFile, setValue, name])
-
-  useEffect(() => {
-    // Make sure to handle the progress update using setUploadProgress
-    if (selectedFile && setUploadProgress) {
-      const formData = new FormData()
-      formData.append("file", selectedFile)
-
-      const progress = 0; // Initialize progress
-      setUploadProgress(progress);
-
-      // Implement your upload logic using Axios or fetch here
-      // Example: axios.post("/upload", formData, config)
+    if (selectedFile) {
+      setValue(name, selectedFile)
+    } else if (editData) {
+      setValue(name, editData)
+    } else {
+      setValue(name, null)
     }
-  }, [selectedFile, setUploadProgress])
+  }, [selectedFile, editData, setValue, name])
 
   return (
     <div className="flex flex-col space-y-2">
@@ -74,10 +66,12 @@ export default function Upload({
         {label} {!viewData && <sup className="text-pink-200">*</sup>}
       </label>
       <div
+        {...(!previewSource ? getRootProps() : {})}
         className={`${
           isDragActive ? "bg-richblack-600" : "bg-richblack-700"
         } flex min-h-[250px] cursor-pointer items-center justify-center rounded-md border-2 border-dotted border-richblack-500`}
       >
+        <input {...getInputProps()} ref={inputRef} />
         {previewSource ? (
           <div className="flex w-full flex-col p-6">
             {!video ? (
@@ -92,7 +86,8 @@ export default function Upload({
             {!viewData && (
               <button
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation()
                   setPreviewSource("")
                   setSelectedFile(null)
                   setValue(name, null)
@@ -104,11 +99,7 @@ export default function Upload({
             )}
           </div>
         ) : (
-          <div
-            className="flex w-full flex-col items-center p-6"
-            {...getRootProps()}
-          >
-            <input {...getInputProps()} ref={inputRef} />
+          <div className="flex w-full flex-col items-center p-6">
             <div className="grid aspect-square w-14 place-items-center rounded-full bg-pure-greys-800">
               <FiUploadCloud className="text-2xl text-yellow-50" />
             </div>

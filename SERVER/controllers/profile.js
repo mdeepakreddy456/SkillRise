@@ -131,6 +131,12 @@ exports.getAllUserDetails = async (req, res) => {
 
 exports.updateDisplayPicture = async (req, res) => {
     try {
+      if (!req.files || !req.files.displayPicture) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide a display picture",
+        })
+      }
       const displayPicture = req.files.displayPicture
       const userId = req.user.id
       const image = await uploadImageToCloudinary(
@@ -183,7 +189,7 @@ exports.getEnrolledCourses = async (req, res) => {
 		for (var j = 0; j < userDetails.courses[i].courseContent.length; j++) {
 		  totalDurationInSeconds += userDetails.courses[i].courseContent[
 			j
-		  ].subSection.reduce((acc, curr) => acc + parseInt(curr.timeDuration), 0)
+		  ].subSection.reduce((acc, curr) => acc + (parseInt(curr.timeDuration) || 0), 0)
 		  userDetails.courses[i].totalDuration = convertSecondsToDuration(
 			totalDurationInSeconds
 		  )
@@ -194,7 +200,7 @@ exports.getEnrolledCourses = async (req, res) => {
 		  courseID: userDetails.courses[i]._id,
 		  userId: userId,
 		})
-		courseProgressCount = courseProgressCount?.completedVideos.length
+		const completedVideosCount = courseProgressCount?.completedVideos?.length || 0
 		if (SubsectionLength === 0) {
 		  userDetails.courses[i].progressPercentage = 100
 		} else {
@@ -202,7 +208,7 @@ exports.getEnrolledCourses = async (req, res) => {
 		  const multiplier = Math.pow(10, 2)
 		  userDetails.courses[i].progressPercentage =
 			Math.round(
-			  (courseProgressCount / SubsectionLength) * 100 * multiplier
+			  (completedVideosCount / SubsectionLength) * 100 * multiplier
 			) / multiplier
 		}
 	  }
@@ -231,8 +237,8 @@ exports.instructorDashboard = async(req, res) => {
 		const courseDetails = await Course.find({instructor:req.user.id});
 
 		const courseData  = courseDetails.map((course)=> {
-			const totalStudentsEnrolled = course.studentsEnrolled.length
-			const totalAmountGenerated = totalStudentsEnrolled * course.price
+			const totalStudentsEnrolled = course.studentsEnrolled ? course.studentsEnrolled.length : 0
+			const totalAmountGenerated = totalStudentsEnrolled * (course.price || 0)
 
 			//create an new object with the additional fields
 			const courseDataWithStats = {
@@ -245,7 +251,7 @@ exports.instructorDashboard = async(req, res) => {
 			return courseDataWithStats
 		})
 
-		res.status(200).json({courses:courseData});
+		res.status(200).json({success: true, courses:courseData});
 
 	}
 	catch(error) {

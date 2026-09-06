@@ -45,9 +45,8 @@ exports.resetPasswordToken = async (req , res) => {
         console.log("DETAILS", updatedDetails)
 
         //Create URL
-        //If user exits : generate the link
-                // Create url and send mail
-        const url = `https://edutech-platform-deepakreddy.vercel.app/update-password/${token}`;
+        const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+        const url = `${clientUrl.replace(/\/$/, "")}/update-password/${token}`;
 
         //Send Mail containing the URL 
         //Lets send the mail 
