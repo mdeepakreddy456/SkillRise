@@ -4,15 +4,10 @@ const mailSender = async (email , title , body) => {
     try {
         const mailPass = (process.env.MAIL_PASS || "").replace(/\s+/g, "");
         let transporter = nodemailer.createTransport({
-          host: process.env.MAIL_HOST || "smtp.gmail.com",
-          port: 587,
-          secure: false,
+          service: "gmail",
           auth: {
             user: process.env.MAIL_USER,
             pass: mailPass,
-          },
-          tls: {
-            rejectUnauthorized: false,
           },
         });
 
